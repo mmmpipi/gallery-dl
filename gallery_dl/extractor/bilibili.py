@@ -97,6 +97,9 @@ class BilibiliUserArticleFavlistExtractor(BilibiliExtractor):
             BilibiliUserArticleFavlistExtractor._warning = False
 
     def items(self):
+        mid = self.api.login_user_id()
+        if str(mid) != self.groups[0]:
+            raise exception.StopExtraction("This is not you favlist url!")
         for article in self.api.user_favlist():
             article["_extractor"] = BilibiliArticleExtractor
             url = "{}/opus/{}".format(self.root, article["opus_id"])
@@ -159,3 +162,15 @@ class BilibiliAPI():
                 break
 
             params["page"] = params["page"] + 1
+
+    def login_user_id(self):
+        url = "https://api.bilibili.com/x/space/v2/myinfo"
+        data = self.extractor.request(url).json()
+
+        if data["code"] != 0:
+            self.extractor.log.debug("Server response: %s", data)
+            raise exception.StopExtraction("API request failed,Are you login?")
+        try:
+            return data["data"]["profile"]["mid"]
+        except Exception:
+            raise exception.StopExtraction("API request failed")
