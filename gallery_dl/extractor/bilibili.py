@@ -81,7 +81,7 @@ class BilibiliArticleExtractor(BilibiliExtractor):
             yield Message.Url, url, text.nameext_from_url(url, article)
 
 
-class BilibiliUserArticleFavListExtractor(BilibiliExtractor):
+class BilibiliUserArticleFavlistExtractor(BilibiliExtractor):
     subcategory = "user-article-favlist"
     pattern = (r"(?:https?://)?(?:space.bilibili.com)"
                r"/(\d+)/(?:favlist\?fid=opus)"
@@ -94,7 +94,7 @@ class BilibiliUserArticleFavListExtractor(BilibiliExtractor):
         if self._warning:
             if not self.cookies_check(("SESSDATA",)):
                 self.log.warning("no 'SESSDATA' cookie set")
-            BilibiliUserArticleFavListExtractor._warning = False
+            BilibiliUserArticleFavlistExtractor._warning = False
 
     def items(self):
         for article in self.api.user_favlist():
