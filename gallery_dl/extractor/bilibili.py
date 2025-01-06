@@ -147,7 +147,7 @@ class BilibiliAPI():
 
     def user_favlist(self):
         endpoint = "/opus/feed/fav"
-        params = {"page":1,"page_size":20}
+        params = {"page": 1, "page_size": 20}
 
         while True:
             data = self._call(endpoint, params)
