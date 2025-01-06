@@ -81,6 +81,28 @@ class BilibiliArticleExtractor(BilibiliExtractor):
             yield Message.Url, url, text.nameext_from_url(url, article)
 
 
+class BilibiliUserArticleFavListExtractor(BilibiliExtractor):
+    subcategory = "user-article-favlist"
+    pattern = (r"(?:https?://)?(?:space.bilibili.com)"
+               r"/(\d+)/(?:favlist\?fid=opus)"
+               r"(?:&ftype=opus)?")
+    example = "https://space.bilibili.com/123456/favlist?fid=opus"
+    _warning = True
+
+    def _init(self):
+        BilibiliExtractor._init(self)
+        if self._warning:
+            if not self.cookies_check(("SESSDATA",)):
+                self.log.warning("no 'SESSDATA' cookie set")
+            BilibiliUserArticleFavListExtractor._warning = False
+
+    def items(self):
+        for article in self.api.user_favlist():
+            article["_extractor"] = BilibiliArticleExtractor
+            url = "{}/opus/{}".format(self.root, article["opus_id"])
+            yield Message.Queue, url, article
+
+
 class BilibiliAPI():
     def __init__(self, extractor):
         self.extractor = extractor
@@ -122,3 +144,18 @@ class BilibiliAPI():
                     raise exception.StopExtraction(
                         "%s: Unable to extract INITIAL_STATE data", article_id)
             self.extractor.wait(seconds=300)
+
+    def user_favlist(self):
+        endpoint = "/opus/feed/fav"
+        params = {"page":1,"page_size":20}
+
+        while True:
+            data = self._call(endpoint, params)
+
+            for item in data["data"]["items"]:
+                yield item
+
+            if not data["data"]["has_more"]:
+                break
+
+            params["page"] = params["page"] + 1
